@@ -1,0 +1,6 @@
+{
+  "name": "Matema Pro",
+  "description": "Noldan mastergacha matematika o'rganish va SAT, ACT, GRE, GMAT, AP Calculus hamda Milliy Sertifikat imtihonlariga tayyorlov ilovasi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

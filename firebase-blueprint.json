@@ -1,0 +1,222 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Learner profile, XP, streak, and target certificate settings.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Google user UID."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Learner display name (1-80 chars)."
+        },
+        "targetExam": {
+          "type": "string",
+          "enum": ["SAT", "ACT", "GRE", "GMAT", "AP_CALCULUS", "MILLIY"],
+          "description": "Primary target certification track."
+        },
+        "totalXp": {
+          "type": "integer",
+          "description": "Total earned experience points."
+        },
+        "streakDays": {
+          "type": "integer",
+          "description": "Current daily study streak count."
+        },
+        "lessonsCompletedCount": {
+          "type": "integer",
+          "description": "Number of completed curriculum lessons."
+        },
+        "quizzesCompletedCount": {
+          "type": "integer",
+          "description": "Number of completed quizzes and mock exams."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of profile creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last profile update."
+        }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "targetExam",
+        "totalXp",
+        "streakDays",
+        "lessonsCompletedCount",
+        "quizzesCompletedCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "LessonProgress": {
+      "title": "LessonProgress",
+      "description": "Tracks mastery and completion per curriculum lesson.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner UID."
+        },
+        "lessonId": {
+          "type": "string",
+          "description": "Curriculum lesson identifier."
+        },
+        "stageId": {
+          "type": "string",
+          "description": "Parent curriculum stage identifier."
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Whether the lesson has been mastered."
+        },
+        "masteryPercent": {
+          "type": "integer",
+          "description": "Mastery score from 0 to 100."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "userId",
+        "lessonId",
+        "stageId",
+        "completed",
+        "masteryPercent",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ExamAttempt": {
+      "title": "ExamAttempt",
+      "description": "Saved mock exam or stage mastery quiz attempt.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "examType": {
+          "type": "string",
+          "enum": ["SAT", "ACT", "GRE", "GMAT", "AP_CALCULUS", "MILLIY", "STAGE_QUIZ"]
+        },
+        "examTitle": {
+          "type": "string"
+        },
+        "correctCount": {
+          "type": "integer"
+        },
+        "totalCount": {
+          "type": "integer"
+        },
+        "scaledScore": {
+          "type": "integer"
+        },
+        "durationSeconds": {
+          "type": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "userId",
+        "examType",
+        "examTitle",
+        "correctCount",
+        "totalCount",
+        "scaledScore",
+        "durationSeconds",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SavedQuestion": {
+      "title": "SavedQuestion",
+      "description": "Bookmarked difficult problem with personal study note.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "questionId": {
+          "type": "string"
+        },
+        "topicTitle": {
+          "type": "string"
+        },
+        "examTag": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "userId",
+        "questionId",
+        "topicTitle",
+        "examTag",
+        "prompt",
+        "note",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "User profile document storing XP, streak, and exam goal."
+    },
+    "/users/{userId}/lessonProgress/{lessonId}": {
+      "schema": {
+        "$ref": "#/entities/LessonProgress"
+      },
+      "description": "Per-user lesson completion and mastery percentage."
+    },
+    "/users/{userId}/examAttempts/{attemptId}": {
+      "schema": {
+        "$ref": "#/entities/ExamAttempt"
+      },
+      "description": "Per-user history of timed SAT, certificate, and stage quiz attempts."
+    },
+    "/users/{userId}/savedQuestions/{questionId}": {
+      "schema": {
+        "$ref": "#/entities/SavedQuestion"
+      },
+      "description": "Per-user bookmarked math problems and study notes."
+    }
+  }
+}

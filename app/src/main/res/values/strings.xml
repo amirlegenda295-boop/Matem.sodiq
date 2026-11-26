@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">Matema Pro</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Bosh sahifa</string>
+    <string name="nav_curriculum">Kurslar</string>
+    <string name="nav_exams">Sertifikatlar</string>
+    <string name="nav_profile">Natijalar</string>
+
+    <!-- Auth Screen -->
+    <string name="auth_title">Matematikani noldan mastergacha o‘rganing</string>
+    <string name="auth_subtitle">Arifmetikadan Oliy Matematikagacha bo‘lgan tizimli yo‘l hamda SAT, ACT, GRE, GMAT, AP Calculus va Milliy Sertifikatga mukammal tayyorgarlik.</string>
+    <string name="auth_google_button">Google orqali kirish</string>
+    <string name="auth_sync_note">O‘quv natijalaringiz, XP ballari va test tahlillaringiz bulutda xavfsiz saqlanadi.</string>
+    <string name="auth_cancelled">Kirish bekor qilindi. Davom etish uchun Google hisobingizni tanlang.</string>
+
+    <!-- Home -->
+    <string name="home_welcome_back">Xush kelibsiz</string>
+    <string name="home_daily_challenge">Kunlik masala</string>
+    <string name="home_continue_learning">O‘qishni davom ettirish</string>
+    <string name="home_formula_bank">Formulalar jadvali</string>
+
+    <!-- Quiz & Exam -->
+    <string name="quiz_submit">Yakunlash</string>
+    <string name="quiz_next">Keyingi savol</string>
+    <string name="quiz_previous">Oldingi</string>
+    <string name="quiz_explanation">Yechim yo‘li</string>
+    <string name="quiz_save_question">Masalani saqlash</string>
+    <string name="quiz_saved_question">Saqlangan</string>
+
+    <!-- Profile -->
+    <string name="profile_sign_out">Chiqish</string>
+    <string name="profile_target_exam">Maqsadli imtihon</string>
+    <string name="profile_saved_problems">Saqlangan masalalar</string>
+    <string name="profile_exam_history">Imtihonlar tarixi</string>
+</resources>

@@ -1,0 +1,148 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: deny all reads and writes by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80 &&
+             data.targetExam is string && data.targetExam in ['SAT', 'ACT', 'GRE', 'GMAT', 'AP_CALCULUS', 'MILLIY'] &&
+             data.totalXp is int && data.totalXp >= 0 && data.totalXp <= 1000000 &&
+             data.streakDays is int && data.streakDays >= 0 && data.streakDays <= 36500 &&
+             data.lessonsCompletedCount is int && data.lessonsCompletedCount >= 0 && data.lessonsCompletedCount <= 500 &&
+             data.quizzesCompletedCount is int && data.quizzesCompletedCount >= 0 && data.quizzesCompletedCount <= 5000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidLessonProgress(data, userId, lessonId) {
+      return data.userId is string && data.userId == userId &&
+             data.lessonId is string && data.lessonId == lessonId && data.lessonId.size() >= 1 && data.lessonId.size() <= 64 &&
+             data.stageId is string && data.stageId.size() >= 1 && data.stageId.size() <= 64 &&
+             data.completed is bool &&
+             data.masteryPercent is int && data.masteryPercent >= 0 && data.masteryPercent <= 100 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidExamAttempt(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.examType is string && data.examType in ['SAT', 'ACT', 'GRE', 'GMAT', 'AP_CALCULUS', 'MILLIY', 'STAGE_QUIZ'] &&
+             data.examTitle is string && data.examTitle.size() >= 1 && data.examTitle.size() <= 100 &&
+             data.correctCount is int && data.correctCount >= 0 && data.correctCount <= 200 &&
+             data.totalCount is int && data.totalCount >= 1 && data.totalCount <= 200 && data.correctCount <= data.totalCount &&
+             data.scaledScore is int && data.scaledScore >= 0 && data.scaledScore <= 1600 &&
+             data.durationSeconds is int && data.durationSeconds >= 0 && data.durationSeconds <= 36000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidSavedQuestion(data, userId, questionId) {
+      return data.userId is string && data.userId == userId &&
+             data.questionId is string && data.questionId == questionId && data.questionId.size() >= 1 && data.questionId.size() <= 64 &&
+             data.topicTitle is string && data.topicTitle.size() >= 1 && data.topicTitle.size() <= 100 &&
+             data.examTag is string && data.examTag.size() >= 1 && data.examTag.size() <= 40 &&
+             data.prompt is string && data.prompt.size() >= 1 && data.prompt.size() <= 1000 &&
+             data.note is string && data.note.size() <= 500 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow list: if false;
+
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().keys().hasAll(['userId', 'displayName', 'targetExam', 'totalXp', 'streakDays', 'lessonsCompletedCount', 'quizzesCompletedCount', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'displayName', 'targetExam', 'totalXp', 'streakDays', 'lessonsCompletedCount', 'quizzesCompletedCount', 'createdAt', 'updatedAt']) &&
+                       isValidUserProfile(incoming(), userId);
+
+      allow update: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidUserProfile(incoming(), userId) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'targetExam', 'totalXp', 'streakDays', 'lessonsCompletedCount', 'quizzesCompletedCount', 'updatedAt']);
+
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      match /lessonProgress/{lessonId} {
+        allow list: if isOwner(userId);
+        allow get, delete: if isOwner(userId) && isValidId(lessonId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(lessonId) &&
+                         incoming().keys().hasAll(['userId', 'lessonId', 'stageId', 'completed', 'masteryPercent', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'lessonId', 'stageId', 'completed', 'masteryPercent', 'createdAt', 'updatedAt']) &&
+                         isValidLessonProgress(incoming(), userId, lessonId);
+
+        allow update: if isOwner(userId) &&
+                         isValidId(lessonId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().lessonId == existing().lessonId &&
+                         incoming().stageId == existing().stageId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidLessonProgress(incoming(), userId, lessonId) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['completed', 'masteryPercent', 'updatedAt']);
+      }
+
+      match /examAttempts/{attemptId} {
+        allow list: if isOwner(userId);
+        allow get, delete: if isOwner(userId) && isValidId(attemptId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(attemptId) &&
+                         incoming().keys().hasAll(['userId', 'examType', 'examTitle', 'correctCount', 'totalCount', 'scaledScore', 'durationSeconds', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'examType', 'examTitle', 'correctCount', 'totalCount', 'scaledScore', 'durationSeconds', 'createdAt', 'updatedAt']) &&
+                         isValidExamAttempt(incoming(), userId);
+
+        allow update: if false;
+      }
+
+      match /savedQuestions/{questionId} {
+        allow list: if isOwner(userId);
+        allow get, delete: if isOwner(userId) && isValidId(questionId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(questionId) &&
+                         incoming().keys().hasAll(['userId', 'questionId', 'topicTitle', 'examTag', 'prompt', 'note', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'questionId', 'topicTitle', 'examTag', 'prompt', 'note', 'createdAt', 'updatedAt']) &&
+                         isValidSavedQuestion(incoming(), userId, questionId);
+
+        allow update: if isOwner(userId) &&
+                         isValidId(questionId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().questionId == existing().questionId &&
+                         incoming().createdAt == existing().createdAt &&
+                         isValidSavedQuestion(incoming(), userId, questionId) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['note', 'updatedAt']);
+      }
+    }
+  }
+}
